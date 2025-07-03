@@ -70,38 +70,36 @@ def extract_scores_from_text(text):
         "Ekonomi": -1
     }
 
-    # Perluasan keyword map untuk toleransi typo
     keyword_map = {
-        "Pendidikan_Agama": ["agama", "aqama", "agoma", "pendidikan agama", "pendidikan aqama"],
-        "Pkn": ["kewarganegaraan", "kewa", "pkn", "pancasila", "kewa"],
-        "Bahasa_Indonesia": ["bahasa indonesia", "indo", "indonesia", "indonosia", "ndon", "has", "b. indonesia"],
-        "Matematika_Wajib": ["matematika", "matematika umum", "matematika wajib", "matematika (umum)", "mate", "atika", "mat"],
-        "Sejarah_Indonesia": ["sejarah indonesia", "sejarah indo", "jarah indonesia", "jarah in", "sejarah"],
-        "Bahasa_Inggris": ["bahasa inggris", "inggris", "ingg", "gris", "b. inggris"],
-        "Seni_Budaya": ["seni", "budaya", "seni budaya", "udaya", "seni rupa"],
-        "Penjaskes": ["penjaskes", "penjas", "jasmani", "olahraga", "penj", "jasm"],
-        "PKWu": ["prakarya", "wirausaha", "kewirausahaan", "pkwu", "prak", "wira", "kwu"],
-        "Mulok": ["muatan lokal", "mulok", "bahasa daerah", "lokal", "muat"],
-        "Matematika_Peminatan": ["matematika peminatan", "matematika (peminatan)", "mat peminatan", "mate pemi"],
-        "Biologi": ["biologi", "biol", "iolo", "olog", "iogi", "bio"],
-        "Fisika": ["fisika", "fisi", "isik", "sika", "fysika"],
-        "Kimia": ["kimia", "kimi", "imia", "kima", "chemistry"],
-        "Geografi": ["geografi", "geog", "eogr", "graf", "geof", "peta"],
-        "Sejarah_Minat": ["sejarah minat", "sejarah m", "jarah m", "minat sejarah"],
-        "Sosiologi": ["sosiologi", "sosi", "osio", "iolo", "sosio"],
-        "Ekonomi": ["ekonomi", "eko", "kono", "onom", "nomi", "ekon"]
+        "Pendidikan_Agama": ["agama"],
+        "Pkn": ["kewa", "pkn"],
+        "Bahasa_Indonesia": ["indo", "ndon", "hasa"],
+        "Matematika_Wajib": ["mate", "math", "atika"],
+        "Sejarah_Indonesia": ["sejarah indo", "jarah in"],
+        "Bahasa_Inggris": ["ingg", "nggr", "gris"],
+        "Seni_Budaya": ["seni", "budaya", "uday"],
+        "Penjaskes": ["jasm", "penj", "olahr"],
+        "PKWu": ["prak", "wira", "kwu"],
+        "Mulok": ["muat", "ulok"],
+        "Matematika_Peminatan": ["mat pemi", "pemina", "emina", "minat", "atika pem"],
+        "Biologi": ["biol", "iolo", "olog", "iogi"],
+        "Fisika": ["fisi", "isik", "sika"],
+        "Kimia": ["kimi", "imia", "kima"],
+        "Geografi": ["geog", "eogr", "graf", "eofi"],
+        "Sejarah_Minat": ["sejarah m", "jarah m"],
+        "Sosiologi": ["sosi", "osio", "iolo"],
+        "Ekonomi": ["eko", "kono", "onom", "nomi"]
     }
 
     lines = text.lower().split('\n')
-    for line in lines:
+    for i, line in enumerate(lines):
         for field, keywords in keyword_map.items():
-            for keyword in keywords:
-                match = difflib.get_close_matches(keyword, [line], n=1, cutoff=0.6)
-                if match:
-                    score = re.findall(r"\b(\d{2,3})\b", line)
-                    if score:
-                        data[field] = float(score[0])
-                        break  # langsung lompat ke field berikutnya
+            if any(fragment in line for fragment in keywords):
+                score = re.findall(r"\b(\d{2,3})\b", line)
+                if not score and i + 1 < len(lines):
+                    score = re.findall(r"\b(\d{2,3})\b", lines[i + 1])
+                if score:
+                    data[field] = float(score[0])
 
     ipa_keys = ["Matematika_Peminatan", "Biologi", "Fisika", "Kimia"]
     ips_keys = ["Geografi", "Sejarah_Minat", "Sosiologi", "Ekonomi"]
@@ -119,7 +117,6 @@ def extract_scores_from_text(text):
         ipa_count = sum(1 for k in ipa_keys if data[k] > 0)
         jurusan = "IPA" if ipa_count > 2 else "IPS"
 
-    # Hitung lintas minat
     lintas = 0
     if jurusan == "IPA":
         for k in ips_keys:
@@ -133,13 +130,12 @@ def extract_scores_from_text(text):
                 data[k] = -1
     data["Lintas_Minat"] = round(lintas / 1, 1) if lintas > 0 else -1
 
-    # Deteksi kelas & semester
     kelas = "X"
     semester = 1
     semester_hint = 1
 
     for line in lines:
-        if "semester 2" in line or "semester genap" in line:
+        if any(keyword in line for keyword in ["semester 2", "semester dua", "sem 2", "semester genap"]):
             semester_hint = 2
         if "xi" in line:
             kelas = "XI"
