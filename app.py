@@ -7,6 +7,7 @@ from PIL import Image
 import io
 import numpy as np
 import cv2
+import re
 import easyocr
 
 app = FastAPI()
