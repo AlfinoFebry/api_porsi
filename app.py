@@ -19,7 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ocr = PaddleOCR(lang="en", use_angle_cls=True, use_gpu=False)
+ocr = PaddleOCR(lang="en", use_angle_cls=True, det=False, rec=False, cls=False)
 
 def preprocess_for_paddle(image: Image.Image) -> Image.Image:
     img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
