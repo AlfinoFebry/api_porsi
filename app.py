@@ -61,7 +61,7 @@ async def ocr_endpoint(file: UploadFile = File(...)):
         img_np = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
         # Run OCR
-        result = ocr.ocr(img_np, cls=True)
+        result = ocr.ocr(img_np)
 
         # Extract texts
         texts = []
