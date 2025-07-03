@@ -80,7 +80,7 @@ def extract_scores_from_text(text):
         "Penjaskes": ["jasm", "penj", "olahr"],
         "PKWu": ["prak", "wira", "kwu"],
         "Mulok": ["muat", "ulok"],
-        "Matematika_Peminatan": ["matika pemi],
+        "Matematika_Peminatan": ["matika pemi"],
         "Biologi": ["biol", "iolo", "olog", "iogi"],
         "Fisika": ["fisi", "isik", "sika"],
         "Kimia": ["kimi", "imia", "kima"],
