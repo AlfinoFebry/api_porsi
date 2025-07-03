@@ -19,3 +19,4 @@ packaging==25.0
 opencv-python
 opencv-python-headless
 easyocr
+regex
