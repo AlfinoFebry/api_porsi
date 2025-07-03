@@ -58,10 +58,8 @@ async def ocr_endpoint(file: UploadFile = File(...)):
         image = Image.open(io.BytesIO(content)).convert("RGB")
         pre = preprocess_for_paddle(image)
         
-        # Jalankan OCR
-        result = ocr.ocr(np.array(pre), cls=True)
+        result = ocr.ocr(np.array(pre))
         
-        # Gabungkan semua teks
         lines = []
         for line in result:
             for box, (txt, score) in line:
