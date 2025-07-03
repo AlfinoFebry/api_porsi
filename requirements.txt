@@ -16,6 +16,8 @@ tzdata==2025.2
 threadpoolctl==3.6.0
 six==1.17.0
 packaging==25.0
+cv2
+paddleocr
 
 transformers 
 torch 
