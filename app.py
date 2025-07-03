@@ -69,39 +69,37 @@ def extract_scores_from_text(text):
         "Ekonomi": -1
     }
 
-    map_keys = {
-        "agama": "Pendidikan_Agama",
-        "kewarganegaraan": "Pkn",
-        "indonesia": "Bahasa_Indonesia",
-        "matematika (umum)": "Matematika_Wajib",
-        "sejarah indonesia": "Sejarah_Indonesia",
-        "inggris": "Bahasa_Inggris",
-        "seni budaya": "Seni_Budaya",
-        "jasmani": "Penjaskes",
-        "olahraga": "Penjaskes",
-        "prakarya": "PKWu",
-        "kewirausahaan": "PKWu",
-        "muatan lokal": "Mulok",
-        "matematika (peminatan)": "Matematika_Peminatan",
-        "biologi": "Biologi",
-        "fisika": "Fisika",
-        "kimia": "Kimia",
-        "geografi": "Geografi",
-        "sejarah minat": "Sejarah_Minat",
-        "sosiologi": "Sosiologi",
-        "ekonomi": "Ekonomi"
+    keyword_map = {
+        "Pendidikan_Agama": ["agama"],
+        "Pkn": ["kewa", "pkn"],
+        "Bahasa_Indonesia": ["indo", "ndon", "ndon", "hasa"],
+        "Matematika_Wajib": ["mate", "math", "atika"],
+        "Sejarah_Indonesia": ["sejarah indo", "jarah in"],
+        "Bahasa_Inggris": ["ingg", "nggr", "gris"],
+        "Seni_Budaya": ["seni", "budaya", "uday"],
+        "Penjaskes": ["jasm", "penj", "olahr"],
+        "PKWu": ["prak", "wira", "kwu"],
+        "Mulok": ["muat", "ulok"],
+        "Matematika_Peminatan": ["matika pemi],
+        "Biologi": ["biol", "iolo", "olog", "iogi"],
+        "Fisika": ["fisi", "isik", "sika"],
+        "Kimia": ["kimi", "imia", "kima"],
+        "Geografi": ["geog", "eogr", "graf", "eofi"],
+        "Sejarah_Minat": ["sejarah m", "jarah m"],
+        "Sosiologi": ["sosi", "osio", "iolo"],
+        "Ekonomi": ["eko", "kono", "onom", "nomi"]
     }
 
     lines = text.lower().split('\n')
     for line in lines:
-        for keyword, field in map_keys.items():
-            if keyword in line:
-                score = re.findall(r"\b(\d{2,3})\b", line)
+        for field, keywords in keyword_map.items():
+            if any(fragment in line for fragment in keywords):
+                score = re.findall(r"\\b(\\d{2,3})\\b", line)
                 if score:
                     data[field] = float(score[0])
 
-    ipa_keys = ["matematika_peminatan", "biologi", "fisika", "kimia"]
-    ips_keys = ["geografi", "sejarah_minat", "sosiologi", "ekonomi"]
+    ipa_keys = ["Matematika_Peminatan", "Biologi", "Fisika", "Kimia"]
+    ips_keys = ["Geografi", "Sejarah_Minat", "Sosiologi", "Ekonomi"]
 
     jurusan = None
     for line in lines:
