@@ -157,7 +157,8 @@ def extract_scores_from_text(text):
         "Jurusan": jurusan,
         "Kelas": kelas,
         "Semester": semester,
-        "Nilai": data
+        "Nilai": data,
+        "Raw Text": text
     }
 
 @app.post("/ocr")
