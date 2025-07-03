@@ -18,3 +18,4 @@ six==1.17.0
 packaging==25.0
 opencv-python
 opencv-python-headless
+easyocr

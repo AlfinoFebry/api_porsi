@@ -7,7 +7,7 @@ from PIL import Image
 import io
 import numpy as np
 import cv2
-from paddleocr import PaddleOCR
+import easyocr
 
 app = FastAPI()
 
@@ -19,13 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-ocr = PaddleOCR(lang="en", use_angle_cls=True)
-
-def preprocess_for_paddle(image: Image.Image) -> Image.Image:
-    img = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
-    blur = cv2.GaussianBlur(img, (5,5), 0)
-    _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    return Image.fromarray(thresh)
+reader = easyocr.Reader(['en'], gpu=False)
 
 class InputData(BaseModel):
     JK: str
@@ -52,29 +46,25 @@ class InputData(BaseModel):
     Hobi: str
 
 @app.post("/ocr")
-async def ocr_endpoint(file: UploadFile = File(...)):
+async def ocr(file: UploadFile = File(...)):
     try:
         contents = await file.read()
-        image = Image.open(io.BytesIO(contents)).convert("RGB")
-        
-        # Convert PIL Image to numpy array
-        img_np = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+        npimg = np.frombuffer(contents, np.uint8)
+        img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
-        # Run OCR
-        result = ocr.ocr(img_np)
+        # Preprocessing
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (3, 3), 0)
+        _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        # Extract texts
-        texts = []
-        for line in result[0]:  # result is a list with one item (for single image)
-            text = line[1][0]   # line[1] = ("text", confidence)
-            texts.append(text)
+        # OCR
+        result = reader.readtext(thresh, detail=0)
+        text = "\n".join(result)
 
-        return {"text": "\n".join(texts)}
-    
+        return {"text": text}
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "OCR failed", "details": str(e)})
 
-    
 @app.post("/cart")
 def predict(input: InputData):
     try:
