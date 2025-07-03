@@ -54,19 +54,23 @@ class InputData(BaseModel):
 @app.post("/ocr")
 async def ocr_endpoint(file: UploadFile = File(...)):
     try:
-        content = await file.read()
-        image = Image.open(io.BytesIO(content)).convert("RGB")
-        pre = preprocess_for_paddle(image)
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents)).convert("RGB")
         
-        result = ocr.ocr(np.array(pre))
-        
-        lines = []
-        for line in result:
-            for box, (txt, score) in line:
-                lines.append(txt)
-        text = "\n".join(lines)
-        
-        return {"text": text}
+        # Convert PIL Image to numpy array
+        img_np = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
+
+        # Run OCR
+        result = ocr.ocr(img_np, cls=True)
+
+        # Extract texts
+        texts = []
+        for line in result[0]:  # result is a list with one item (for single image)
+            text = line[1][0]   # line[1] = ("text", confidence)
+            texts.append(text)
+
+        return {"text": "\n".join(texts)}
+    
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "OCR failed", "details": str(e)})
 
