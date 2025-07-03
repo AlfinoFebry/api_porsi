@@ -91,16 +91,19 @@ def extract_scores_from_text(text):
         "Ekonomi": ["eko", "kono", "onom", "nomi"]
     }
 
-    for field, keywords in keyword_map.items():
-        for keyword in keywords:
-            matches = difflib.get_close_matches(keyword, line.split(), n=1, cutoff=0.75)
-            if matches:
-                score = re.findall(r"\b(\d{2,3})\b", line)
-                if not score and i + 1 < len(lines):
-                    score = re.findall(r"\b(\d{2,3})\b", lines[i + 1])
-                if score:
-                    data[field] = float(score[0])
-                    break
+    lines = text.lower().split('\n')
+    for i, line in enumerate(lines):
+        for field, keywords in keyword_map.items():
+            for keyword in keywords:
+                words = line.split()
+                matches = difflib.get_close_matches(keyword, words, n=1, cutoff=0.75)
+                if matches:
+                    score = re.findall(r"\b(\d{2,3})\b", line)
+                    if not score and i + 1 < len(lines):
+                        score = re.findall(r"\b(\d{2,3})\b", lines[i + 1])
+                    if score:
+                        data[field] = float(score[0])
+                        break
 
     ipa_keys = ["Matematika_Peminatan", "Biologi", "Fisika", "Kimia"]
     ips_keys = ["Geografi", "Sejarah_Minat", "Sosiologi", "Ekonomi"]
