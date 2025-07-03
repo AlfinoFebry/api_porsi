@@ -71,24 +71,24 @@ def extract_scores_from_text(text):
     }
 
     keyword_map = {
-        "Pendidikan_Agama": ["agama"],
-        "Pkn": ["kewa", "pkn"],
-        "Bahasa_Indonesia": ["indo", "ndon", "hasa"],
-        "Matematika_Wajib": ["mate", "math", "atika"],
-        "Sejarah_Indonesia": ["sejarah indo", "jarah in"],
-        "Bahasa_Inggris": ["ingg", "nggr", "gris"],
+        "Pendidikan_Agama": ["agama", "islam", "krist", "katolik", "hindu", "budha"],
+        "Pkn": ["kewa", "negara"],
+        "Bahasa_Indonesia": ["indo", "dones", "bahasa indo"],
+        "Matematika_Wajib": ["mate", "math", "atika", "matematiika"],
+        "Sejarah_Indonesia": ["sejarah", "seja"],
+        "Bahasa_Inggris": ["ingg", "nggr", "gris", "bahasa inggris"],
         "Seni_Budaya": ["seni", "budaya", "uday"],
-        "Penjaskes": ["jasm", "penj", "olahr"],
-        "PKWu": ["prak", "wira", "kwu"],
-        "Mulok": ["muat", "ulok"],
-        "Matematika_Peminatan": ["mat pemi", "pemina", "emina", "minat", "atika pem"],
-        "Biologi": ["biol", "iolo", "olog", "iogi"],
-        "Fisika": ["fisi", "isik", "sika"],
-        "Kimia": ["kimi", "imia", "kima"],
-        "Geografi": ["geog", "eogr", "graf", "eofi"],
-        "Sejarah_Minat": ["sejarah m", "jarah m"],
-        "Sosiologi": ["sosi", "osio", "iolo"],
-        "Ekonomi": ["eko", "kono", "onom", "nomi"]
+        "Penjaskes": ["jasm", "penj", "olahr", "raga"],
+        "PKWu": ["prak", "wira", "karya"],
+        "Mulok": ["muat", "ulok" "daerah"],
+        "Matematika_Peminatan": ["mat pemi", "pemina", "emina", "minat", "atika pem", "matematika peminatan"],
+        "Biologi": ["biol", "iolo", "olog", "iogi", "biologi"],
+        "Fisika": ["fisi", "isik", "sika" , "fisika"],
+        "Kimia": ["kimi", "imia", "kima" , "kimia"],
+        "Geografi": ["geog", "eogr", "graf", "eofi" , "geografi"],
+        "Sejarah_Minat": ["sejarah m", "jarah m" , "sejarah peminatan"],
+        "Sosiologi": ["sosi", "osio", "sosiologi"],
+        "Ekonomi": ["eko", "kono", "onom", "nomi", "ekonomi"],
     }
 
     lines = text.lower().split('\n')
@@ -111,6 +111,9 @@ def extract_scores_from_text(text):
     jurusan = None
     for line in lines:
         if "ipa" in line:
+            jurusan = "IPA"
+            break
+        elif "mia" in line:
             jurusan = "IPA"
             break
         elif "ips" in line:
