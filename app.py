@@ -72,9 +72,9 @@ def extract_scores_from_text(text):
 
     keyword_map = {
         "Pendidikan_Agama": ["agama", "islam", "krist", "katolik", "hindu", "budha"],
-        "Pkn": ["kewa", "negara"],
+        "Pkn": ["kewa", "negara", "pendidikan", "panca"],
         "Bahasa_Indonesia": ["indo", "dones", "bahasa indo"],
-        "Matematika_Wajib": ["mate", "math", "atika", "matematiika"],
+        "Matematika_Wajib": ["mate", "math", "atika", "matematika", "matika umum", "matika"],
         "Sejarah_Indonesia": ["sejarah", "seja"],
         "Bahasa_Inggris": ["ingg", "nggr", "gris", "bahasa inggris"],
         "Seni_Budaya": ["seni", "budaya", "uday"],
@@ -222,6 +222,15 @@ async def ocr(file: UploadFile = File(...)):
         contents = await file.read()
         npimg = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+
+        # Step 1: Resize image (scale up)
+        scale_percent = 150
+        width = int(img.shape[1] * scale_percent / 100)
+        height = int(img.shape[0] * scale_percent / 100)
+        img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
+
+        # Step 2: Denoise
+        img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
 
         # Preprocessing
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
