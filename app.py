@@ -173,49 +173,6 @@ async def restrict_to_post_only(request: Request, call_next):
         )
     return await call_next(request)
 
-@app.post("/ocr")
-async def ocr(file: UploadFile = File(...)):
-    try:
-        contents = await file.read()
-        npimg = np.frombuffer(contents, np.uint8)
-        img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-
-        # Step 1: Resize image (scale up)
-        scale_percent = 150
-        width = int(img.shape[1] * scale_percent / 100)
-        height = int(img.shape[0] * scale_percent / 100)
-        img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
-
-        # Step 2: Denoise
-        img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
-
-        # Step 3: Convert to grayscale
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        # Step 4: Adaptive Gaussian Threshold
-        thresh = cv2.adaptiveThreshold(
-            gray, 255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY,
-            11, 2
-        )
-
-        # Step 5: OCR with allowlist
-        result = reader.readtext(
-            thresh,
-            detail=0,
-            paragraph=False,
-            allowlist='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        )
-
-        # Combine OCR result
-        text = "\n".join(result)
-        processed = extract_scores_from_text(text)
-        return processed
-
-    except Exception as e:
-        return JSONResponse(status_code=500, content={"error": "OCR failed", "details": str(e)})
-
 # @app.post("/ocr")
 # async def ocr(file: UploadFile = File(...)):
 #     try:
@@ -223,17 +180,65 @@ async def ocr(file: UploadFile = File(...)):
 #         npimg = np.frombuffer(contents, np.uint8)
 #         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
-#         # Preprocessing
-#         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#         blur = cv2.GaussianBlur(gray, (3, 3), 0)
-#         _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+#         # Step 1: Resize image (scale up)
+#         scale_percent = 150
+#         width = int(img.shape[1] * scale_percent / 100)
+#         height = int(img.shape[0] * scale_percent / 100)
+#         img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
 
-#         result = reader.readtext(thresh, detail=0)
+#         # Step 2: Denoise
+#         img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+
+#         # Step 3: Convert to grayscale
+#         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+#         # Step 4: Adaptive Gaussian Threshold
+#         thresh = cv2.adaptiveThreshold(
+#             gray, 255,
+#             cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+#             cv2.THRESH_BINARY,
+#             11, 2
+#         )
+
+#         # Step 5: OCR with allowlist
+#         result = reader.readtext(
+#             thresh,
+#             detail=0,
+#             paragraph=False,
+#             allowlist='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+#         )
+
+#         # Combine OCR result
 #         text = "\n".join(result)
 #         processed = extract_scores_from_text(text)
 #         return processed
+
 #     except Exception as e:
 #         return JSONResponse(status_code=500, content={"error": "OCR failed", "details": str(e)})
+
+@app.post("/ocr")
+async def ocr(file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        npimg = np.frombuffer(contents, np.uint8)
+        img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+
+        # Preprocessing
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (3, 3), 0)
+        _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+        result = reader.readtext(
+            thresh,
+            detail=0,
+            paragraph=False,
+            allowlist='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        )
+        text = "\n".join(result)
+        processed = extract_scores_from_text(text)
+        return processed
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": "OCR failed", "details": str(e)})
 
 
 @app.post("/cart")
