@@ -231,7 +231,6 @@ async def ocr(file: UploadFile = File(...)):
         result = reader.readtext(
             thresh,
             detail=0,
-            paragraph=False,
             allowlist='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
         )
         text = "\n".join(result)
