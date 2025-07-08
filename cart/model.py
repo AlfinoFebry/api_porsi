@@ -1,8 +1,8 @@
 import joblib
 import pandas as pd
 
-model = joblib.load("cart/model.pkl")
-encoder = joblib.load("cart/encoder.pkl")
+model = joblib.load("cart/model_v2.pkl")
+encoder = joblib.load("cart/encoder_v2.pkl")
 
 columns = [
     'JK', 'Jurusan_SMA', 'Pendidikan_Agama', 'Pkn', 'Bahasa_Indonesia', 'Matematika_Wajib',
