@@ -229,15 +229,31 @@ async def ocr(file: UploadFile = File(...)):
         npimg = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
-        # Preprocessing
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        blur = cv2.GaussianBlur(gray, (3, 3), 0)
-        _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        # 🧩 Chunking helper
+        def chunk_image(image, chunk_height=700):
+            h, w, _ = image.shape
+            return [image[y:y + chunk_height, :] for y in range(0, h, chunk_height)]
 
-        result = reader.readtext(thresh, detail=0)
-        text = "\n".join(result)
+        all_results = []
+
+        for chunk in chunk_image(img):
+            # 🧠 Adaptive Gaussian Thresholding per chunk
+            gray = cv2.cvtColor(chunk, cv2.COLOR_BGR2GRAY)
+            thresh = cv2.adaptiveThreshold(
+                gray, 255,
+                cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                cv2.THRESH_BINARY,
+                11, 2
+            )
+
+            result = reader.readtext(thresh, detail=0, paragraph=False)
+            all_results.extend(result)
+
+        # 🔠 Combine OCR results
+        text = "\n".join(all_results)
         processed = extract_scores_from_text(text)
         return processed
+
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "OCR failed", "details": str(e)})
 
