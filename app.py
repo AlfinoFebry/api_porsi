@@ -173,6 +173,55 @@ async def restrict_to_post_only(request: Request, call_next):
         )
     return await call_next(request)
 
+# @app.post("/ocr")
+# async def ocr(file: UploadFile = File(...)):
+#     try:
+#         contents = await file.read()
+#         npimg = np.frombuffer(contents, np.uint8)
+#         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+
+#         # Step 1: Resize (scale up for better OCR)
+#         scale_percent = 150
+#         width = int(img.shape[1] * scale_percent / 100)
+#         height = int(img.shape[0] * scale_percent / 100)
+#         img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
+
+#         # Step 2: Denoise
+#         img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+
+#         # Step 3: Chunking function
+#         def chunk_image(image, chunk_height=700):
+#             h, w, _ = image.shape
+#             return [image[y:y+chunk_height, :] for y in range(0, h, chunk_height)]
+
+#         # Step 4: Process each chunk
+#         all_results = []
+#         for chunk in chunk_image(img):
+#             gray = cv2.cvtColor(chunk, cv2.COLOR_BGR2GRAY)
+#             thresh = cv2.adaptiveThreshold(
+#                 gray, 255,
+#                 cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+#                 cv2.THRESH_BINARY,
+#                 11, 2
+#             )
+
+#             # OCR with allowlist and paragraph mode
+#             result = reader.readtext(
+#                 thresh,
+#                 detail=0,
+#                 paragraph=True,
+#                 allowlist='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+#             )
+#             all_results.extend(result)
+
+#         # Combine and process
+#         text = "\n".join(all_results)
+#         processed = extract_scores_from_text(text)
+#         return processed
+
+#     except Exception as e:
+#         return JSONResponse(status_code=500, content={"error": "OCR failed", "details": str(e)})
+
 @app.post("/ocr")
 async def ocr(file: UploadFile = File(...)):
     try:
@@ -180,48 +229,17 @@ async def ocr(file: UploadFile = File(...)):
         npimg = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
-        # Step 1: Resize (scale up for better OCR)
-        scale_percent = 150
-        width = int(img.shape[1] * scale_percent / 100)
-        height = int(img.shape[0] * scale_percent / 100)
-        img = cv2.resize(img, (width, height), interpolation=cv2.INTER_LINEAR)
+        # Preprocessing
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (3, 3), 0)
+        _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-        # Step 2: Denoise
-        img = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
-
-        # Step 3: Chunking function
-        def chunk_image(image, chunk_height=700):
-            h, w, _ = image.shape
-            return [image[y:y+chunk_height, :] for y in range(0, h, chunk_height)]
-
-        # Step 4: Process each chunk
-        all_results = []
-        for chunk in chunk_image(img):
-            gray = cv2.cvtColor(chunk, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.adaptiveThreshold(
-                gray, 255,
-                cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                cv2.THRESH_BINARY,
-                11, 2
-            )
-
-            # OCR with allowlist and paragraph mode
-            result = reader.readtext(
-                thresh,
-                detail=0,
-                paragraph=True,
-                allowlist='0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-            )
-            all_results.extend(result)
-
-        # Combine and process
-        text = "\n".join(all_results)
+        result = reader.readtext(thresh, detail=0)
+        text = "\n".join(result)
         processed = extract_scores_from_text(text)
         return processed
-
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": "OCR failed", "details": str(e)})
-
 
 
 @app.post("/cart")
