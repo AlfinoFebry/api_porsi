@@ -223,15 +223,10 @@ async def ocr(file: UploadFile = File(...)):
         npimg = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
 
+        # Preprocessing
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        # Step 4: Adaptive Gaussian Threshold
-        thresh = cv2.adaptiveThreshold(
-            gray, 255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY,
-            11, 2
-        )
+        blur = cv2.GaussianBlur(gray, (3, 3), 0)
+        _, thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
         result = reader.readtext(
             thresh,
