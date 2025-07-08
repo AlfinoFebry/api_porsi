@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -163,6 +163,15 @@ def extract_scores_from_text(text):
         "Nilai": data,
         "Raw Text": text
     }
+
+@app.middleware("http")
+async def restrict_to_post_only(request: Request, call_next):
+    if request.method != "POST":
+        return JSONResponse(
+            status_code=405,
+            content={"detail": f"Method {request.method} not allowed. Only POST is allowed."}
+        )
+    return await call_next(request)
 
 @app.post("/ocr")
 async def ocr(file: UploadFile = File(...)):
