@@ -166,12 +166,13 @@ def extract_scores_from_text(text):
 
 @app.middleware("http")
 async def restrict_to_post_only(request: Request, call_next):
-    if request.method != "POST":
+    if request.method not in ["POST", "OPTIONS"]:
         return JSONResponse(
             status_code=405,
             content={"detail": f"Method {request.method} not allowed. Only POST is allowed."}
         )
     return await call_next(request)
+
 
 # @app.post("/ocr")
 # async def ocr(file: UploadFile = File(...)):
